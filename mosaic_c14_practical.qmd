@@ -1,0 +1,143 @@
+---
+title: "Radiocarbon and aoristic modelling"
+subtitle: "MOSAIC Summer School, Bibracte, 2–6 September 2024"
+author: "Joe Roe"
+format: 
+  html:
+    toc: true
+    number-sections: true
+execute:
+  #output: false
+  cache: true
+---
+
+<!-- TODO:
+- [ ] add bibliography
+-->
+
+# Introduction
+
+* Aside: tidy data
+
+
+```{r deps}
+library("ggplot2")
+library("maps")
+library("sf")
+library("tidyr")
+```
+
+# Acquiring radiocarbon data
+
+Where you get your radiocarbon data will vary considerably based on your application, region and period of interest.
+An in-depth regional study will very likely involve at least some compilation of dates from the primary literature.
+However, there are a number of global 'metadatabases' available that provide a good starting point for many analyses.
+Here we will focus on two that have an R interface: [c14bazAAR](https://docs.ropensci.org/c14bazAAR/) and [XRONOS](https://r.xronos.ch).
+
+c14bazAAR lets you download and collate a large number (26 as of writing) of open radiocarbon compilations, mostly covering specific regions.
+After you have installed the package, you can download all of them at once, but this is time-consuming:
+
+```{r c14bazAAR-all}
+#| eval: false
+# Don't run:
+c14bazAAR::get_all_dates()
+```
+
+Instead, let's combine three databases that cover Western Europe: [Radiocarbon Palaeolithic Europe](https://ees.kuleuven.be/en/geography/projects/14c-palaeolithic), [NeoNet](https://github.com/zoometh/neonet) (Mesolithic–Neolithic), and [RADO.NB](https://radonb.ufg.uni-kiel.de/) (Neolithic–Iron Age):
+
+```{r c14bazAAR-weurope-c14}
+weurope_c14 <- c14bazAAR::get_c14data(c("14cpalaeolithic", "neonet", "rado.nb"))
+```
+
+The advantage of using c14bazAAR (as opposed to simply downloading the individual datasets) is that it standardises the different data structures and variable names used by the different sources and gives you a single table:
+
+```{r weurope-c14}
+#| echo: false
+#| output: true
+weurope_c14
+```
+
+The most important columns from a chronological perspective are `c14age` (the conventional radiocarbon age, CRA) and `c14std` (the error associated with the age).
+In addition, we have a lot of metadata.
+This includes coordinate columns (`lat` and `lon`), which we can use to inspect the geographic coverage of our dataset:
+
+```{r weurope-c14-map}
+weurope_c14 |>
+  as_tibble() |>
+  drop_na(lon, lat) |>
+  st_as_sf(crs = 4326, coords = c("lon", "lat")) |> # EPSG:4326 = WGS84 lat/long
+  ggplot() +
+  geom_sf(data = st_as_sf(map("world", plot = FALSE, fill = TRUE)), 
+          fill = "white") +
+  geom_sf()
+```
+
+Similarly, we can use plot the distribution of the radiocarbon ages to quickly visualise the chronological coverage (remember the scale here is *uncalibrated* years BP):
+
+```{r weurope-c14-dist}
+ggplot(weurope_c14, aes(c14age)) +
+  geom_histogram(bins = 300) +
+  scale_x_continuous(
+    name = "uncal BP", 
+    labels = scales::label_comma(),
+    limits = c(100000, 1000),
+    transform = c("log10", "reverse")
+  )
+```
+
+* c14bazAAR
+* XRONOS & xronos.R
+* Aside: other sources of radiocarbon data (esp. regional)
+
+## Exercises
+
+1. How many of the dates in our `weurope_c14` dataset are missing a) a lab number b) a radiocarbon age c) a radiocarbon error and d) coordinates?
+
+# Cleaning radiocarbon data
+
+* BP/BCE -> era
+* Aside: chronometric hygiene and importance of metadata
+
+## Exercises
+
+# Radiocarbon calibration
+
+* Aside: tidy modelling / nested data frames
+
+## Exercises
+
+# Constructing aoristic periods
+
+* With a uniform distribution
+* With a trapezoidal distribution (a la OxCal) ?
+* 'Calendar probability distributions'
+
+## Exercises
+
+# Summarising dates
+
+* Mid-point estimates
+  * Aside: caveat empor
+* Ranges
+* Summarise by other variables
+
+## Exercises
+
+# Plotting dates
+
+* Plotting the probability distribution
+* Plotting summaries
+  * Bernie's plot
+
+## Exercises
+
+# Aggregating dates
+
+* SPD
+* (c)KDE
+* Aside: extensive literature on aggregation
+* Aggregate by other variables
+
+## Exercises
+
+# [Stretch] Monte Carlo simulation
