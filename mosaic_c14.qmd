@@ -1,0 +1,176 @@
+---
+title: "Radiocarbon and aoristic modelling"
+subtitle: "MOSAIC Summer School, Bibracte, 2–6 September 2024"
+author: 
+  - name: Joe Roe
+    url: https://joeroe.io
+    affiliation: University of Bern
+format:
+  revealjs:
+    theme: serif
+    transition: slide
+    center: true
+---
+
+## Radiocarbon and aoristic modelling {.smaller}
+
+MOSAIC Summer School, Bibracte, 2-6 September 2024  
+Joe Roe
+
+:::: {.columns}
+
+::: {.column}
+**Contact**
+
+{{< bi house-fill >}} <https://joeroe.io>  
+{{< bi envelope-fill >}} [joeroe@hey.com](mailto:joeroe@hey.com)  
+{{< bi mastodon >}} [joeroe@archaeo.social](https://archaeo.social/@joeroe)  
+:::
+
+::: {.column}
+**Materials**<!-- TODO: update -->
+
+{{< bi easel3 >}} [joeroe.io/mosaic_c14](https://joeroe.io/mosaic_c14/mosaic_c14.html)  
+{{< bi github >}} [joeroe/mosaic_c14](https://github.com/joeroe/mosaic_c14)  
+{{< ai doi >}} [10.5281/zenodo.XXX]()
+:::
+
+::::
+
+---
+
+This morning:
+
+:::{.incremental}
+* Radiocarbon and aoristic dating
+* Modelling calendar probability distributions
+* Radiocarbon and aoristic modelling in R
+:::
+
+---
+
+This afternoon (practical):
+
+
+# Radiocarbon and aoristic dating
+
+## Radiocarbon dating^[<https://en.wikipedia.org/wiki/Radiocarbon_dating>]
+
+<!-- TODO: atmospheric carbon figure -->
+
+:::{.notes}
+* Break-in discussion: what are radiocarbon dates? Where do they come from?
+* I'm not going to talk about the chemistry, sampling or measurement side of things today; just the analysis
+* For further background the English Wikipedia article is very good
+:::
+
+---
+
+::: {.r-fit-text}
+
+<span class="fragment highlight-current-red">OxA-1234</span>
+<span class="fragment highlight-current-red">11200</span>
+<span class="fragment highlight-current-red">± 20</span>
+<span class="fragment highlight-current-red">(uncal) BP</span>
+:::
+
+:::{.notes}
+* A basic radiocarbon date: lab number, CRA, error
+* First part of the lab number is the lab identifier; semi-standardised but no central authority
+* CRA = conventional radiocarbon age
+* CRA is just the traditional way of reporting based on an estimated half-life; what the lab measures is F14C.
+* The error is not the standard deviation
+* BP (not BCE) is also always used by convention for uncal dates (at least in the last 30 years or so)
+:::
+
+---
+
+## Conventional radiocarbon age (CRA)
+
+---
+
+## Radiocarbon metadata
+
+:::{.notes}
+* Important for 'chronometric hygiene'
+:::
+
+---
+
+## Calibration
+
+* Calibration (a transformation of probability density functions)
+* Publication and compilation of dates
+
+---
+
+## Publication and compilation
+
+---
+
+## Aoristic dating
+
+* Expressing our knowledge about the timing of an event as a probability function (over time)
+* Usually periods (uniform distribution) – doesn't have to be
+* Source-agnostic
+
+---
+
+# Modelling calendar probability distributions
+
+---
+
+Consider radiocarbon and aoristic dates from a structural perspective, and they have a lot in common.
+So much so that you can consider them basically the same thing – they're both models of when something happened.
+
+* "Coordinates in time"
+* Single events, expressed as a probability density function (not periods or other abstractions)
+* Measured as ages relative to an epoch (i.e. not a true calendar date)
+
+What further modelling can we do with these structures?
+
+---
+
+## Summarising
+
+Probability functions are not that appealing to work with.
+Usually, archaeologists attempt to *summarise* the information in them into more tractable forms:
+
+* The probability distribution
+* Point distributions
+* 'Sigma ranges'
+* Bernie's thing
+
+Don't underestimate how far you can get just by summarising dates, especially visually, and especially combined with grouping with other factors.
+
+---
+
+## Aggregating
+
+---
+
+## Constraining
+
+---
+
+## Comparing
+
+---
+
+## Mapping
+
+---
+
+# Radiocarbon and aoristic modelling in R
+
+---
+
+The practicalities: how do we actually do this?
+
+* Sources of data:
+  * The lab & the literature
+  * Regional compilations
+  * Global compilations / metadatabases
+* Acquiring and cleaning data
+* Packages for modelling
+* Plotting and communicating

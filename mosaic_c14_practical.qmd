@@ -1,5 +1,5 @@
 ---
-title: "Radiocarbon and aoristic modelling"
+title: "Practical: radiocarbon and aoristic modelling"
 subtitle: "MOSAIC Summer School, Bibracte, 2–6 September 2024"
 author: "Joe Roe"
 format: 
