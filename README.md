@@ -8,10 +8,13 @@ You will need to install the R packages listed at the top of the document to be 
 
 ## How to view the slides
 
+### Locally
+
 `mosaic_c14.html` is a self-contained HTML document containing the slides.
 To view them, download or clone it and open it in a web browser.
 
 Press `s` in the presentation window and see the speaker notes.
 
+### Online
 
-
+The slides can also be viewed online at http://joeroe.io/mosaic_c14
