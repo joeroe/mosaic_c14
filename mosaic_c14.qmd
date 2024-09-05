@@ -10,6 +10,7 @@ format:
     theme: serif
     transition: slide
     center: true
+embed-resources: true
 ---
 
 ```{r deps}
@@ -166,7 +167,7 @@ Aggregating dates with **rcarbon**
 
 ## Aoristic dating
 
-```{r}
+```{r aoristic-dates}
 aor1 <- data.frame(year_bp = 11700:6000, p = rep(1 / length(11700:6000), length(11700:6000))) |>
   ggplot(aes(year_bp, p)) +
   geom_area() +
