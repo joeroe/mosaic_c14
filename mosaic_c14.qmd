@@ -12,32 +12,10 @@ format:
     center: true
 ---
 
-## Radiocarbon and aoristic modelling {.smaller}
-
-MOSAIC Summer School, Bibracte, 2-6 September 2024  
-Joe Roe
-
-:::: {.columns}
-
-::: {.column}
-**Contact**
-
-{{< bi house-fill >}} <https://joeroe.io>  
-{{< bi envelope-fill >}} [joeroe@hey.com](mailto:joeroe@hey.com)  
-{{< bi mastodon >}} [joeroe@archaeo.social](https://archaeo.social/@joeroe)  
-:::
-
-::: {.column}
-**Materials**<!-- TODO: update -->
-
-{{< bi easel3 >}} [joeroe.io/mosaic_c14](https://joeroe.io/mosaic_c14/mosaic_c14.html)  
-{{< bi github >}} [joeroe/mosaic_c14](https://github.com/joeroe/mosaic_c14)  
-{{< ai doi >}} [10.5281/zenodo.XXX]()
-:::
-
-::::
-
----
+```{r deps}
+library(ggplot2)
+library(patchwork)
+```
 
 This morning:
 
@@ -51,12 +29,36 @@ This morning:
 
 This afternoon (practical):
 
+Acquiring radiocarbon data with **xronos**
+: <https://r.xronos.ch/articles/xronos.html>
+
+Preparing aoristic data with **datplot**
+: <https://lsteinmann.github.io/datplot/articles/data_preparation.html>
+
+Calibrating radiocarbon dates
+: <https://www.martinhinz.info/jekyll/update/blog/2016/06/03/simple_calibration.html>
+
+Summarising data with **c14**
+: <https://github.com/joeroe/c14>
+
+Aggregating dates with **rcarbon**
+: <https://github.com/ahb108/rcarbon/>
 
 # Radiocarbon and aoristic dating
 
 ## Radiocarbon dating^[<https://en.wikipedia.org/wiki/Radiocarbon_dating>]
 
-<!-- TODO: atmospheric carbon figure -->
+::::{.columns}
+
+:::{.column}
+![<small>Ambers 2005, <https://doi.org/10.1016/B0-12-369397-7/00019-4></small>](figures/ambers_2005_radiocarbon.jpg)
+:::
+
+:::{.column}
+![](figures/waikato_c14_decag.jpg)
+:::
+
+::::
 
 :::{.notes}
 * Break-in discussion: what are radiocarbon dates? Where do they come from?
@@ -67,7 +69,6 @@ This afternoon (practical):
 ---
 
 ::: {.r-fit-text}
-
 <span class="fragment highlight-current-red">OxA-1234</span>
 <span class="fragment highlight-current-red">11200</span>
 <span class="fragment highlight-current-red">± 20</span>
@@ -75,21 +76,27 @@ This afternoon (practical):
 :::
 
 :::{.notes}
-* A basic radiocarbon date: lab number, CRA, error
-* First part of the lab number is the lab identifier; semi-standardised but no central authority
+* A basic radiocarbon date: lab identifier, CRA, error
+* First part of the lab identifier is the lab code; semi-standardised but no central authority
 * CRA = conventional radiocarbon age
-* CRA is just the traditional way of reporting based on an estimated half-life; what the lab measures is F14C.
+* CRA is just a notational age based on an estimated half-life; what the lab measures is F14C.
 * The error is not the standard deviation
 * BP (not BCE) is also always used by convention for uncal dates (at least in the last 30 years or so)
 :::
 
 ---
 
-## Conventional radiocarbon age (CRA)
+## Sample metadata
 
----
-
-## Radiocarbon metadata
+:::{.incremental}
+* Lab identifier (lab code + number)
+* Site and location
+* Coordinates
+* Depth
+* Material
+* Taxon
+* Pretreatment and measurement method
+:::
 
 :::{.notes}
 * Important for 'chronometric hygiene'
@@ -99,78 +106,427 @@ This afternoon (practical):
 
 ## Calibration
 
-* Calibration (a transformation of probability density functions)
-* Publication and compilation of dates
+---
+
+![](figures/calibration_curve.png)
+
+:::{.notes}
+* Calibration an essential step to transforming radiocarbon dates into usable chronological information
+* Calibration curves regularly published by the IntCal group; latest IntCal20
+* A model fitted to a series of radiocarbon dates on samples of known age (mostly tree-rings)
+:::
+
+---
+
+![ORAU, <https://c14.arch.ox.ac.uk/explanation.php>](figures/eg_calib.gif)
+
+:::{.notes}
+* Probabilistic: error is associated with both the date and the calibration
+* A model of when the event occurred – more than one possible model for any date (different curves, corrections, algorithms)
+:::
+
+---
+
+![Martin Hinz, <https://www.martinhinz.info/blog/>](figures/hinz_calibration.png)
+
+:::{.notes}
+* The actual process of calibration is straightforward: project the uncalibrated probability distribution onto the calibration curve (freely available online)
+* There are different algorithms which we needn't go into here; Martin Hinz has a good series of blog posts on them
+:::
 
 ---
 
 ## Publication and compilation
 
+![](figures/date_list.png)
+
+:::{.notes}
+* All radiocarbon dates go through a small number of labs, but are then dispersed into the literature
+* It used to be that they were centrally published in *Radiocarbon* 'date lists', but not any more
+* So if you want to work with larger sets of dates, you have to start looking through the literature – or hope somebody else already has done (more on this later)
+:::
+
+---
+
+## Conventions for radiocarbon reporting
+
+1. measurement (CRA or F14C)
+2. laboratory identifier
+3. sample material, pretreatment method, quality control measurements
+4. calibration curve and any reservoir offset
+5. details of software used for calibration 
+6. calibrated range(s) with associated probability
+
+:::{.notes}
+* Conventions for publication (after Millard 2014)
+* Analyses based on radiocarbon dating should always include the raw dates
+:::
+
 ---
 
 ## Aoristic dating
 
+```{r}
+aor1 <- data.frame(year_bp = 11700:6000, p = rep(1 / length(11700:6000), length(11700:6000))) |>
+  ggplot(aes(year_bp, p)) +
+  geom_area() +
+  scale_x_reverse() +
+  labs(title = '"Neolithic"')
+
+aor2 <- rbind(
+  data.frame(year_bp = 11700:11000, p = rep(0.8 / length(11700:11000), length(11700:11000))),
+  data.frame(year_bp = 10999:8500, p = rep(0.2 / length(10999:8500), length(10999:8500))),
+  data.frame(year_bp = 8499:6000, p = rep(0, length(8499:6000)))
+) |>
+  ggplot(aes(year_bp, p)) +
+  geom_area() +
+  scale_x_reverse() +
+  labs(title = '"Probably PPNA, maybe PPNB"')
+
+aor1 / aor2
+```
+
+:::{.notes}
 * Expressing our knowledge about the timing of an event as a probability function (over time)
+* Originally from criminology
 * Usually periods (uniform distribution) – doesn't have to be
 * Source-agnostic
+:::
+
+---
+
+## ...not so straightforward?
+
+* Not all periods are equal
+* Duration ≠ uncertainty
+* Not actually a population statistic
+
+Crema (2024, <https://doi.org/10.1111/arcm.12984>) proposes a new Bayesian alternative.
+
+:::{.notes}
+* Aoristic vectors are frequently aggregated to estimate the temporal intensity of some phenomenon (a set of events), but this has several problems
+* Better-dated periods will cause 'spikes' simply by virtue of being better-dated
+* Fails to distinguish between the duration and uncertainty (and different types of uncertainty)
+* Is just an (aggregated) estimate of sample probabilities; not a proper inference about the underlying population
+:::
 
 ---
 
 # Modelling calendar probability distributions
 
+:::{.notes}
+Break task: <!-- TODO -->
+:::
+
 ---
 
+Radiocarbon & aoristic dates are:
+
+:::{.incremental}
+* Coordinates in time
+* Modelled as probability functions of an event
+* Measured relative to an epoch
+:::
+
+:::{.notes}
 Consider radiocarbon and aoristic dates from a structural perspective, and they have a lot in common.
 So much so that you can consider them basically the same thing – they're both models of when something happened.
 
-* "Coordinates in time"
+* "Coordinates in time": something that links an anthropic event to a particular moment (and usually a place) 
 * Single events, expressed as a probability density function (not periods or other abstractions)
-* Measured as ages relative to an epoch (i.e. not a true calendar date)
+* Measured as ages relative to an epoch (i.e. not a true calendar date), usually in years
 
 What further modelling can we do with these structures?
+:::
+
+---
+
+1. Summarise
+2. Aggregate
+3. Fit
+4. Correlate
+5. Map
 
 ---
 
 ## Summarising
 
+<!-- TODO: figure, three views of the same date -->
+
+:::{.notes}
 Probability functions are not that appealing to work with.
 Usually, archaeologists attempt to *summarise* the information in them into more tractable forms:
 
 * The probability distribution
-* Point distributions
+* Point distributions (caveat empor)
 * 'Sigma ranges'
-* Bernie's thing
 
 Don't underestimate how far you can get just by summarising dates, especially visually, and especially combined with grouping with other factors.
+:::
 
 ---
 
 ## Aggregating
 
+:::{.notes}
+When you have more than one date for a given phenomenon, it's often useful to aggregate them.
+This could be in order to better visualise the probability of something with multiple dates (a phase, a site).
+Or to use the aggregated signal itself as a proxy for something else: most commonly population size.
+:::
+
+<!-- TODO: slide on demographic modelling? -->
+
 ---
 
-## Constraining
+<!-- TODO figure aggregation methods -->
+
+:::{.notes}
+Methods of aggregation include:
+
+* Summed probability (the most common)
+* (c)KDE
+* Event count
+
+I'm personally quite agnostic about which is best.
+I use SPDs because they're a well known and well documented method;
+the argument behind (c)KDEs and event counts is that they're better theoretically justified.
+:::
 
 ---
 
-## Comparing
+## Fitting
+
+![](figures/bayescal.png)
+
+:::{.notes}
+As we noted earlier, these dates are a kind of model of when an event happened, drawn from scientific evidence.
+But they are rarely the *only* thing we know about when it happened.
+For example, with radiocarbon the sample is almost always stratigraphically constrained: we know where it came from in the excavation, and so what must be earlier or later than it.
+We can use this information to improve the fit of the chronological model.
+
+The most common approach to this is to use Bayesian modelling, as implemented in for example Bcal, OxCal or Chronomodel, where the other knowledge (usually stratigraphic, doesn't have to be) is introduced as a prior when performing a Bayesian calibration of the date or dates.
+Levy's ChronoLog algorithm uses a similar logic, but non-probabilistically.
+:::
+
+---
+
+## Correlating
+
+::::{.columns}
+
+:::{.column}
+![](figures/martin_et_al_2017_rel.png)
+:::
+
+:::{.column}
+![](figures/martin_et_al_2017_abs.png)
+:::
+
+::::
+
+<small>Martin et al. 2017, <https://doi.org/10.1016/j.yqres.2016.07.001></small>
+
+:::{.notes}
+* Once we have a chronology (of a set of units or phases in a site, or sites in a region, etc.) we can explore trends in other, possibly correlated data
+* Doing so can reveal a radically different picture from trends looked at period-by-period
+* This generally takes the form of a simple time series graph and regression analysis
+* The complication is that our independent factor (the chronology) are not fixed points
+* Some approaches to fixing this problem:
+  * Ignore it – use point estimates (the most common, but as mentioned point estimates are not considered good summaries)
+:::
+
+---
+
+![Martin et al. in prep.](figures/martin_et_al_in_prep.png)
+
+:::{.notes}
+* Or Monte Carlo simulation
+* It's underexplored, though – a good subject for further research!
+:::
 
 ---
 
 ## Mapping
 
+<!-- TODO: figure -->
+
+:::{.notes}
+* We should also mention a special case of covariate: spatial coordinates
+* Here the probabilistic nature of the chronology is an asset, because we can use it to interpolate on the temporal axis simultaneously with the spatial ones
+* e.g. in 3D KDE estimates or Schmid's 'time crystals'
+:::
+
 ---
 
 # Radiocarbon and aoristic modelling in R
 
+:::{.notes}
+Break task: <!-- TODO -->
+
+The practicalities: how do we actually do this? (In R)?
+
+:::
+
 ---
 
-The practicalities: how do we actually do this?
+## Sources of radiocarbon data
 
-* Sources of data:
-  * The lab & the literature
-  * Regional compilations
-  * Global compilations / metadatabases
-* Acquiring and cleaning data
-* Packages for modelling
-* Plotting and communicating
+:::{.incremental}
+1. Primary: the lab
+2. Secondary: literature
+3. Tertiary: compilations
+:::
+
+:::{.notes}
+Where can we get radiocarbon data?
+
+On a site or microregional scale, you might be working with your own dates submitted to a lab. This is nice and simple: the report you get will have everything you need.
+
+But the majority of regional analyses will involve at least some literature review.
+This is a rather laborious process that relies on open and complete reporting of the data (as discussed earlier), which is not always the case!
+:::
+
+## Radiocarbon compilations
+
+::::{.columns}
+
+:::{.column}
+![](figures/c14dbs.png)
+:::
+
+:::{.column}
+![](figures/c14dbsmap.png)
+:::
+
+::::
+
+<small>Roe et al. in prep, 'XRONOS: an open data infrastructure for archaeological chronology'</small>
+
+:::{.notes}
+* Many regional compilations of dates have been published in the last 20–30 years
+* Increasing trend towards open publication in machine readable formats (yay!)
+* Cons: you have to know where to look, rarely up-to-date
+* And a lot is still missing – major problems systematic bias and institutional obstacles to data-sharing
+:::
+
+---
+
+## Global compilations and metadatabases
+
+::::{.columns}
+
+:::{.column}
+c14bazAAR  
+<small><https://docs.ropensci.org/c14bazAAR/></small>
+:::
+
+:::{.column}
+IntChron  
+<small><https://intchron.org/></small>
+:::
+
+::::
+
+::::{.columns}
+
+:::{.column}
+p3k14c  
+<small><https://www.p3k14c.org/></small>
+:::
+
+:::{.column}
+XRONOS  
+<small><https://xronos.ch></small>
+:::
+
+::::
+
+:::{.notes}
+The proliferation of these regional compilations have prompted several people to think more globally.
+There are a few approaches.
+
+'Metadatabases' index and provide a common interface to individual source databases, but don't curate the data themselves:
+
+* c14bazAAR
+* IntChron
+
+Synthetic databases combine and curate the data:
+
+* p3k14c
+* XRONOS
+:::
+
+## Sources of aoristic data
+
+:::{.fragment}
+???
+:::
+
+:::{.notes}
+Let's not forget about aoristic data!
+
+This has been much less systematised than radiocarbon.
+Most applications of aoristic analysis will simply assign periods and dates to sites themselves; or perhaps use smaller regional site databases where those are available.
+
+Efforts to compile and publish this kind of information has been limited, but it does exist (e.g. the Cyprus Settlement Database).
+We also have some basic infrastructure and preliminary data in XRONOS (collected alongside radiocarbon), so stay tuned there.
+:::
+
+---
+
+## Cleaning data
+
+* Dates missing measurement data
+* Dates missing metadata
+* Duplicates
+* Incorrect or inconsistent (meta)data
+
+:::{.notes}
+Once acquired, we will need to do some cleaning, especially if integrating data from multiple sources.
+Here is a list of common problems, in rough order of how
+We'll look more at this in the workshop.
+:::
+
+---
+
+## Radiocarbon packages
+
+Representing time
+: era, aion
+
+Acquiring data
+: c14bazAAR, rIntChron, p3k14c, xronos
+
+Calibration
+: c14, rcarbon, IntCal, BChron, oxcAAR, IntCal
+
+Modelling
+: rcarbon (SPDs, cKDEs, spatiotemporal modelling), coffee, nimbleCarbon (Bayesian modelling), ArchaeoPhases (Bayesian post-processing), stratigraphr (stratigraphic modelling)
+
+---
+
+## Aoristic packages
+
+aoristic, aoristAAR, datplot, archSeries, kairos, baorista
+
+---
+
+## Other options
+
+![<https://c14.arch.ox.ac.uk/oxcal>](figures/oxcal.png)
+
+:::{.notes}
+Of course you don't *have* to do this in R.
+The major alternative is OxCal, which offers a full suite of modelling tools for radiocarbon and other chronological data.
+It is very advanced, has both a well-documented scripting language and an easy-to-use GUI interface, and is available online for free.
+It is not open source, which raises some issues, but it can produce partially reproducible analyses if you share your scripts.
+
+There is also ChronoModel and some libraries for chronological modelling in Python and Haskell.
+
+I prefer to use R for a number of reasons, but primarily because I do a lot of *other* types of work in R, and I want the chronological modelling to be integrated alongside it.
+If you want to do chronological modelling alone, then you might find one of the other options better.
+:::
+
+---
+
+<!-- TODO: repeat intro slide -->
